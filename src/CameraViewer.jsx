@@ -4,18 +4,31 @@ const CameraViewer = () => {
   const videoRef = useRef(null);
   const [info, setInfo] = useState('載入中...');
 
-  // 🧠 簡單的 User Agent 解析函式
-  const detectDevice = () => {
+  const detectDevicePlatform = () => {
     const ua = navigator.userAgent;
-
     if (/android/i.test(ua)) return 'Android';
     if (/iphone/i.test(ua)) return 'iPhone';
     if (/ipad/i.test(ua)) return 'iPad';
     if (/macintosh/i.test(ua)) return 'Mac';
     if (/windows/i.test(ua)) return 'Windows';
     if (/linux/i.test(ua)) return 'Linux';
+    return '未知平台';
+  };
 
-    return '未知裝置';
+  const detectBrandFromUserAgent = () => {
+    const ua = navigator.userAgent;
+    if (/SM-|Galaxy|Samsung/i.test(ua)) return 'Samsung';
+    if (/XQ-|SO-|Sony/i.test(ua)) return 'Sony';
+    if (/Pixel/i.test(ua)) return 'Google Pixel';
+    if (/iPhone/i.test(ua)) return 'Apple iPhone';
+    if (/iPad/i.test(ua)) return 'Apple iPad';
+    if (/MI|Redmi|Xiaomi/i.test(ua)) return 'Xiaomi';
+    if (/OnePlus/i.test(ua)) return 'OnePlus';
+    if (/OPPO/i.test(ua)) return 'OPPO';
+    if (/Vivo/i.test(ua)) return 'Vivo';
+    if (/ASUS|Zenfone/i.test(ua)) return 'ASUS';
+    if (/HUAWEI|HONOR/i.test(ua)) return 'Huawei/Honor';
+    return '未知品牌';
   };
 
   useEffect(() => {
@@ -23,11 +36,35 @@ const CameraViewer = () => {
       try {
         const lines = [];
 
-        // 🧠 User Agent 與裝置類型
+        // Basic UA
         lines.push(`🧠 User Agent:\n${navigator.userAgent}\n`);
-        lines.push(`📱 判斷裝置平台: ${detectDevice()}\n`);
+        lines.push(`📱 預測平台: ${detectDevicePlatform()}`);
+        lines.push(`🏷️ 預測品牌: ${detectBrandFromUserAgent()}`);
 
-        // 🎥 啟用相機並取得 video track
+        // UA-CH: 嘗試取得高精度裝置資訊
+        if (navigator.userAgentData?.getHighEntropyValues) {
+          try {
+            const uaDetails = await navigator.userAgentData.getHighEntropyValues([
+              'platform',
+              'platformVersion',
+              'model',
+              'architecture',
+              'bitness',
+              'fullVersionList'
+            ]);
+
+            lines.push(`\n🔍 UA-CH 裝置資訊（高精度）:`);
+            Object.entries(uaDetails).forEach(([key, value]) => {
+              lines.push(`• ${key}: ${value}`);
+            });
+          } catch (err) {
+            lines.push('\n⚠️ 無法取得 UA-CH 裝置資訊（可能未授權）');
+          }
+        } else {
+          lines.push('\n⚠️ 瀏覽器不支援 User-Agent Client Hints (UA-CH)');
+        }
+
+        // 啟用相機並抓取設定
         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
@@ -35,7 +72,7 @@ const CameraViewer = () => {
 
         const videoTrack = stream.getVideoTracks()[0];
         if (videoTrack) {
-          lines.push('🎥 MediaTrack Settings:');
+          lines.push('\n🎥 MediaTrack Settings:');
           const settings = videoTrack.getSettings();
           Object.entries(settings).forEach(([key, value]) => {
             lines.push(`• ${key}: ${value}`);
@@ -50,10 +87,10 @@ const CameraViewer = () => {
           }
         }
 
-        // 📋 所有相機裝置
+        // 所有相機裝置
         const devices = await navigator.mediaDevices.enumerateDevices();
         const videoInputs = devices.filter(d => d.kind === 'videoinput');
-        lines.push('\n📋 可用的相機裝置:');
+        lines.push('\n📋 可用相機裝置:');
         videoInputs.forEach((device, idx) => {
           lines.push(`相機 ${idx + 1}:`);
           lines.push(`• label: ${device.label || '(無法取得)'}`);
@@ -78,7 +115,6 @@ const CameraViewer = () => {
         playsInline
         style={{ width: '100%', maxWidth: '500px', border: '1px solid black', borderRadius: '8px' }}
       />
-
       <h2 style={{ marginTop: '20px' }}>📦 裝置詳細資訊</h2>
       <pre
         style={{
