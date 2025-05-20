@@ -1,0 +1,59 @@
+import React, { useEffect, useRef, useState } from 'react';
+
+const CameraViewer = () => {
+  const videoRef = useRef(null);
+  const [cameraInfo, setCameraInfo] = useState('讀取中...');
+
+  // 啟用相機
+  useEffect(() => {
+    const startCamera = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      } catch (err) {
+        setCameraInfo('無法存取相機：' + err.message);
+      }
+    };
+
+    const listCameras = async () => {
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const cameras = devices.filter(device => device.kind === 'videoinput');
+
+        if (cameras.length === 0) {
+          setCameraInfo('找不到任何相機裝置。');
+          return;
+        }
+
+        const info = cameras.map((cam, index) => 
+          `📷 相機 ${index + 1}：
+• 標籤：${cam.label || '（無法取得）'}
+• 裝置ID：${cam.deviceId}`
+        ).join('\n\n');
+
+        setCameraInfo(info);
+      } catch (err) {
+        setCameraInfo('取得相機資訊失敗：' + err.message);
+      }
+    };
+
+    startCamera();
+    listCameras();
+  }, []);
+
+  return (
+    <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
+      <h2>📷 即時相機畫面</h2>
+      <video ref={videoRef} autoPlay playsInline style={{ width: '100%', maxWidth: '500px', border: '2px solid #333', borderRadius: '8px' }} />
+
+      <h2 style={{ marginTop: '20px' }}>📋 可用相機裝置資訊</h2>
+      <pre style={{ background: '#fff', padding: '15px', border: '1px solid #ccc', borderRadius: '6px', whiteSpace: 'pre-wrap', maxWidth: '500px' }}>
+        {cameraInfo}
+      </pre>
+    </div>
+  );
+};
+
+export default CameraViewer;
