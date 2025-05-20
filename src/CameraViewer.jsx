@@ -2,51 +2,94 @@ import React, { useEffect, useRef, useState } from 'react';
 
 const CameraViewer = () => {
   const videoRef = useRef(null);
-  const [cameraInfo, setCameraInfo] = useState('讀取中...');
+  const [info, setInfo] = useState('載入中...');
 
-  // 啟用相機
+  // 🧠 簡單的 User Agent 解析函式
+  const detectDevice = () => {
+    const ua = navigator.userAgent;
+
+    if (/android/i.test(ua)) return 'Android';
+    if (/iphone/i.test(ua)) return 'iPhone';
+    if (/ipad/i.test(ua)) return 'iPad';
+    if (/macintosh/i.test(ua)) return 'Mac';
+    if (/windows/i.test(ua)) return 'Windows';
+    if (/linux/i.test(ua)) return 'Linux';
+
+    return '未知裝置';
+  };
+
   useEffect(() => {
-    const startCameraAndListDevices = async () => {
+    const gatherInfo = async () => {
       try {
-        // 1️⃣ 先取得相機權限（這一步也會觸發權限提示）
+        const lines = [];
+
+        // 🧠 User Agent 與裝置類型
+        lines.push(`🧠 User Agent:\n${navigator.userAgent}\n`);
+        lines.push(`📱 判斷裝置平台: ${detectDevice()}\n`);
+
+        // 🎥 啟用相機並取得 video track
         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
         }
-  
-        // 2️⃣ 取得設備清單，這時 label 才會有值
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        const cameras = devices.filter(device => device.kind === 'videoinput');
-  
-        if (cameras.length === 0) {
-          setCameraInfo('找不到任何相機裝置。');
-          return;
+
+        const videoTrack = stream.getVideoTracks()[0];
+        if (videoTrack) {
+          lines.push('🎥 MediaTrack Settings:');
+          const settings = videoTrack.getSettings();
+          Object.entries(settings).forEach(([key, value]) => {
+            lines.push(`• ${key}: ${value}`);
+          });
+
+          if (typeof videoTrack.getCapabilities === 'function') {
+            lines.push('\n📈 MediaTrack Capabilities:');
+            const capabilities = videoTrack.getCapabilities();
+            Object.entries(capabilities).forEach(([key, value]) => {
+              lines.push(`• ${key}: ${JSON.stringify(value)}`);
+            });
+          }
         }
-  
-        const info = cameras.map((cam, index) => 
-          `📷 相機 ${index + 1}：
-  • 標籤：${cam.label || '（無法取得）'}
-  • 裝置ID：${cam.deviceId}`
-        ).join('\n\n');
-  
-        setCameraInfo(info);
+
+        // 📋 所有相機裝置
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoInputs = devices.filter(d => d.kind === 'videoinput');
+        lines.push('\n📋 可用的相機裝置:');
+        videoInputs.forEach((device, idx) => {
+          lines.push(`相機 ${idx + 1}:`);
+          lines.push(`• label: ${device.label || '(無法取得)'}`);
+          lines.push(`• deviceId: ${device.deviceId}\n`);
+        });
+
+        setInfo(lines.join('\n'));
       } catch (err) {
-        setCameraInfo('錯誤：' + err.message);
+        setInfo(`❌ 錯誤：${err.message}`);
       }
     };
-  
-    startCameraAndListDevices();
+
+    gatherInfo();
   }, []);
-  
 
   return (
-    <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
-      <h2>📷 即時相機畫面</h2>
-      <video ref={videoRef} autoPlay playsInline style={{ width: '100%', maxWidth: '500px', border: '2px solid #333', borderRadius: '8px' }} />
+    <div style={{ fontFamily: 'sans-serif', padding: '20px' }}>
+      <h2>📷 相機畫面</h2>
+      <video
+        ref={videoRef}
+        autoPlay
+        playsInline
+        style={{ width: '100%', maxWidth: '500px', border: '1px solid black', borderRadius: '8px' }}
+      />
 
-      <h2 style={{ marginTop: '20px' }}>📋 可用相機裝置資訊</h2>
-      <pre style={{ background: '#fff', padding: '15px', border: '1px solid #ccc', borderRadius: '6px', whiteSpace: 'pre-wrap', maxWidth: '500px' }}>
-        {cameraInfo}
+      <h2 style={{ marginTop: '20px' }}>📦 裝置詳細資訊</h2>
+      <pre
+        style={{
+          whiteSpace: 'pre-wrap',
+          background: '#f5f5f5',
+          padding: '15px',
+          borderRadius: '8px',
+          maxWidth: '500px',
+        }}
+      >
+        {info}
       </pre>
     </div>
   );
