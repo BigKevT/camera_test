@@ -4,13 +4,24 @@ const CameraPage = () => {
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const [error, setError] = useState(null);
-  const [cameraInfo, setCameraInfo] = useState('');
+  const [capturedImage, setCapturedImage] = useState(null);
+
+  const takePhoto = () => {
+    if (videoRef.current) {
+      const canvas = document.createElement('canvas');
+      canvas.width = videoRef.current.videoWidth;
+      canvas.height = videoRef.current.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(videoRef.current, 0, 0);
+      const imageUrl = canvas.toDataURL('image/jpeg', 1.0);
+      setCapturedImage(imageUrl);
+    }
+  };
 
   useEffect(() => {
     const getPreferredCameraStream = async () => {
       try {
         setError(null);
-        // 先停止現有的相機流
         if (streamRef.current) {
           streamRef.current.getTracks().forEach(track => track.stop());
           streamRef.current = null;
@@ -19,7 +30,6 @@ const CameraPage = () => {
         const devices = await navigator.mediaDevices.enumerateDevices();
         const videoDevices = devices.filter(device => device.kind === "videoinput");
 
-        // 定義相機優先級和關鍵字
         const priorityList = [
           { name: "macro", keywords: ["macro", "微距", "近拍"] },
           { name: "ultrawide", keywords: ["ultrawide", "超廣角", "wide"] },
@@ -27,13 +37,11 @@ const CameraPage = () => {
           { name: "back", keywords: ["back", "後置", "rear"] }
         ];
 
-        // 為每個相機計算優先級分數
         const scoredDevices = videoDevices.map(device => {
           const label = device.label.toLowerCase();
-          let score = 999; // 默認最低優先級
+          let score = 999;
           let matchedType = "other";
 
-          // 檢查每個優先級類別
           for (let i = 0; i < priorityList.length; i++) {
             const { name, keywords } = priorityList[i];
             if (keywords.some(keyword => label.includes(keyword))) {
@@ -43,23 +51,11 @@ const CameraPage = () => {
             }
           }
 
-          return {
-            device,
-            score,
-            type: matchedType
-          };
+          return { device, score, type: matchedType };
         });
 
-        // 按優先級排序
         const sortedDevices = scoredDevices.sort((a, b) => a.score - b.score);
 
-        // 記錄找到的相機信息
-        const cameraInfo = sortedDevices.map(({ device, type }) => 
-          `相機: ${device.label} (類型: ${type})`
-        ).join('\n');
-        setCameraInfo(cameraInfo);
-
-        // 嘗試使用每個相機，從最高優先級開始
         for (const { device } of sortedDevices) {
           try {
             const stream = await navigator.mediaDevices.getUserMedia({
@@ -69,11 +65,11 @@ const CameraPage = () => {
                 height: { ideal: 1080 },
                 advanced: [
                   {
-                    focusMode: 'manual',
-                    focusDistance: 0.1,
+                    focusMode: 'continuous',
                     exposureMode: 'continuous',
                     whiteBalanceMode: 'continuous',
-                    zoom: 1.0
+                    zoom: 1.0,
+                    torch: false
                   }
                 ]
               }
@@ -86,16 +82,31 @@ const CameraPage = () => {
                 console.error('Error playing video:', err);
                 throw new Error('Failed to start video playback');
               });
+
+              // 嘗試設置相機參數
+              const videoTrack = stream.getVideoTracks()[0];
+              if (videoTrack && videoTrack.getCapabilities) {
+                const capabilities = videoTrack.getCapabilities();
+                const settings = videoTrack.getSettings();
+                
+                // 如果支持手動對焦，設置較小的對焦距離
+                if (capabilities.focusDistance) {
+                  await videoTrack.applyConstraints({
+                    advanced: [{
+                      focusMode: 'manual',
+                      focusDistance: 0.1
+                    }]
+                  });
+                }
+              }
             }
-            console.log(`成功使用鏡頭：${device.label}`);
             return;
           } catch (err) {
             console.warn(`無法使用鏡頭：${device.label}`, err);
           }
         }
 
-        // 如果所有相機都失敗，使用默認後置相機
-        console.log('嘗試使用默認後置相機');
+        // 使用默認後置相機
         const fallbackStream = await navigator.mediaDevices.getUserMedia({
           video: {
             facingMode: 'environment',
@@ -103,11 +114,11 @@ const CameraPage = () => {
             height: { ideal: 1080 },
             advanced: [
               {
-                focusMode: 'manual',
-                focusDistance: 0.1,
+                focusMode: 'continuous',
                 exposureMode: 'continuous',
                 whiteBalanceMode: 'continuous',
-                zoom: 1.0
+                zoom: 1.0,
+                torch: false
               }
             ]
           }
@@ -129,7 +140,6 @@ const CameraPage = () => {
 
     getPreferredCameraStream();
 
-    // 清理函數
     return () => {
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
@@ -152,9 +162,12 @@ const CameraPage = () => {
           autoPlay 
         />
       </div>
-      {cameraInfo && (
-        <div className="camera-info">
-          {cameraInfo}
+      <div className="camera-controls">
+        <button onClick={takePhoto}>拍照</button>
+      </div>
+      {capturedImage && (
+        <div className="captured-image">
+          <img src={capturedImage} alt="Captured" />
         </div>
       )}
     </div>
