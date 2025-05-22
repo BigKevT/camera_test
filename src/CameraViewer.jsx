@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 
 const CameraViewer = () => {
   const videoRef = useRef(null);
+  const streamRef = useRef(null);
   const [info, setInfo] = useState('載入中...');
 
   const detectDevicePlatform = () => {
@@ -65,9 +66,25 @@ const CameraViewer = () => {
         }
 
         // 啟用相機並抓取設定
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach(track => track.stop());
+        }
+
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: 'environment',
+            width: { ideal: 1920 },
+            height: { ideal: 1080 }
+          }
+        });
+        
+        streamRef.current = stream;
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
+          await videoRef.current.play().catch(err => {
+            console.error('Error playing video:', err);
+            throw new Error('Failed to start video playback');
+          });
         }
 
         const videoTrack = stream.getVideoTracks()[0];
@@ -99,11 +116,23 @@ const CameraViewer = () => {
 
         setInfo(lines.join('\n'));
       } catch (err) {
+        console.error('Error:', err);
         setInfo(`❌ 錯誤：${err.message}`);
       }
     };
 
     gatherInfo();
+
+    // 清理函數
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+      }
+      if (videoRef.current) {
+        videoRef.current.srcObject = null;
+      }
+    };
   }, []);
 
   return (
@@ -113,6 +142,7 @@ const CameraViewer = () => {
         ref={videoRef}
         autoPlay
         playsInline
+        muted
         style={{ width: '100%', maxWidth: '500px', border: '1px solid black', borderRadius: '8px' }}
       />
       <h2 style={{ marginTop: '20px' }}>📦 裝置詳細資訊</h2>
