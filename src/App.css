@@ -63,6 +63,9 @@ body {
   display: flex;
   gap: 1rem;
   justify-content: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
 .nav-bar button {
@@ -85,10 +88,17 @@ body {
 
 .main-content {
   flex: 1;
-  padding: 2rem;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .camera-page {
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 1rem;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -96,47 +106,31 @@ body {
 }
 
 .camera-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
   width: 100%;
-  max-width: 640px;
+  position: relative;
+  background-color: #000;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .camera-container video {
   width: 100%;
-  aspect-ratio: 4/3; /* 設置長方形比例，4:3 是常見的相機比例 */
+  aspect-ratio: 4/3;
   object-fit: cover;
+  display: block;
+}
+
+.camera-info {
+  width: 100%;
+  max-width: 640px;
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: #f5f5f5;
   border-radius: 8px;
-  background-color: #000;
-}
-
-.camera-controls {
-  display: flex;
-  gap: 1rem;
-  margin-top: 1rem;
-}
-
-.camera-controls button {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 4px;
-  background-color: #007bff;
-  color: white;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.camera-controls button:hover {
-  background-color: #0056b3;
-}
-
-.captured-image {
-  margin-top: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  overflow: hidden;
+  font-family: monospace;
+  font-size: 0.875rem;
+  white-space: pre-wrap;
+  word-break: break-all;
 }
 
 .error-message {
@@ -149,4 +143,57 @@ body {
   text-align: center;
   width: 100%;
   max-width: 640px;
+}
+
+.camera-controls {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.camera-controls button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  background-color: #007bff;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  min-width: 120px;
+}
+
+.camera-controls button:hover {
+  background-color: #0056b3;
+}
+
+.captured-image {
+  width: 100%;
+  margin-top: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #000;
+}
+
+.captured-image img {
+  width: 100%;
+  display: block;
+  object-fit: contain;
+}
+
+@media (max-width: 640px) {
+  .camera-page {
+    padding: 0.5rem;
+  }
+
+  .camera-controls {
+    gap: 0.5rem;
+  }
+
+  .camera-controls button {
+    min-width: 100px;
+    padding: 0.5rem;
+  }
 }

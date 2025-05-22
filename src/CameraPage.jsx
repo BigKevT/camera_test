@@ -1,136 +1,164 @@
-import { useState, useRef, useEffect } from 'react';
-import './App.css';
+import React, { useEffect, useRef, useState } from 'react';
 
-function CameraPage() {
-  const [image, setImage] = useState(null);
-  const [error, setError] = useState(null);
+const CameraPage = () => {
   const videoRef = useRef(null);
   const streamRef = useRef(null);
+  const [error, setError] = useState(null);
+  const [cameraInfo, setCameraInfo] = useState('');
 
-  // 組件卸載時清理相機
   useEffect(() => {
+    const getPreferredCameraStream = async () => {
+      try {
+        setError(null);
+        // 先停止現有的相機流
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach(track => track.stop());
+          streamRef.current = null;
+        }
+
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoDevices = devices.filter(device => device.kind === "videoinput");
+
+        // 定義相機優先級和關鍵字
+        const priorityList = [
+          { name: "macro", keywords: ["macro", "微距", "近拍"] },
+          { name: "ultrawide", keywords: ["ultrawide", "超廣角", "wide"] },
+          { name: "telephoto", keywords: ["telephoto", "長焦", "tele"] },
+          { name: "back", keywords: ["back", "後置", "rear"] }
+        ];
+
+        // 為每個相機計算優先級分數
+        const scoredDevices = videoDevices.map(device => {
+          const label = device.label.toLowerCase();
+          let score = 999; // 默認最低優先級
+          let matchedType = "other";
+
+          // 檢查每個優先級類別
+          for (let i = 0; i < priorityList.length; i++) {
+            const { name, keywords } = priorityList[i];
+            if (keywords.some(keyword => label.includes(keyword))) {
+              score = i;
+              matchedType = name;
+              break;
+            }
+          }
+
+          return {
+            device,
+            score,
+            type: matchedType
+          };
+        });
+
+        // 按優先級排序
+        const sortedDevices = scoredDevices.sort((a, b) => a.score - b.score);
+
+        // 記錄找到的相機信息
+        const cameraInfo = sortedDevices.map(({ device, type }) => 
+          `相機: ${device.label} (類型: ${type})`
+        ).join('\n');
+        setCameraInfo(cameraInfo);
+
+        // 嘗試使用每個相機，從最高優先級開始
+        for (const { device } of sortedDevices) {
+          try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+              video: {
+                deviceId: { exact: device.deviceId },
+                width: { ideal: 1920 },
+                height: { ideal: 1080 },
+                advanced: [
+                  {
+                    focusMode: 'manual',
+                    focusDistance: 0.1,
+                    exposureMode: 'continuous',
+                    whiteBalanceMode: 'continuous',
+                    zoom: 1.0
+                  }
+                ]
+              }
+            });
+
+            streamRef.current = stream;
+            if (videoRef.current) {
+              videoRef.current.srcObject = stream;
+              await videoRef.current.play().catch(err => {
+                console.error('Error playing video:', err);
+                throw new Error('Failed to start video playback');
+              });
+            }
+            console.log(`成功使用鏡頭：${device.label}`);
+            return;
+          } catch (err) {
+            console.warn(`無法使用鏡頭：${device.label}`, err);
+          }
+        }
+
+        // 如果所有相機都失敗，使用默認後置相機
+        console.log('嘗試使用默認後置相機');
+        const fallbackStream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: 'environment',
+            width: { ideal: 1920 },
+            height: { ideal: 1080 },
+            advanced: [
+              {
+                focusMode: 'manual',
+                focusDistance: 0.1,
+                exposureMode: 'continuous',
+                whiteBalanceMode: 'continuous',
+                zoom: 1.0
+              }
+            ]
+          }
+        });
+
+        streamRef.current = fallbackStream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = fallbackStream;
+          await videoRef.current.play().catch(err => {
+            console.error('Error playing video:', err);
+            throw new Error('Failed to start video playback');
+          });
+        }
+      } catch (err) {
+        console.error("Camera access error:", err);
+        setError("無法存取相機，請確認權限是否開啟");
+      }
+    };
+
+    getPreferredCameraStream();
+
+    // 清理函數
     return () => {
       if (streamRef.current) {
-        stopCamera();
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+      }
+      if (videoRef.current) {
+        videoRef.current.srcObject = null;
       }
     };
   }, []);
 
-  const startCamera = async () => {
-    try {
-      setError(null);
-      // 先檢查是否支持 getUserMedia
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw new Error('Your browser does not support camera access');
-      }
-
-      // 先停止現有的相機流
-      if (streamRef.current) {
-        stopCamera();
-      }
-
-      const constraints = {
-        video: {
-          facingMode: 'environment',
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
-          advanced: [
-            {
-              focusMode: 'manual',
-              focusDistance: 0.1,
-              exposureMode: 'continuous',
-              whiteBalanceMode: 'continuous',
-              zoom: 1.0
-            }
-          ]
-        }
-      };
-
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      streamRef.current = stream;
-      
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        // 確保視頻元素開始播放
-        await videoRef.current.play().catch(err => {
-          console.error('Error playing video:', err);
-          throw new Error('Failed to start video playback');
-        });
-      }
-    } catch (err) {
-      console.error('Error accessing camera:', err);
-      setError(err.message || 'Failed to access camera');
-      
-      // 如果後置相機失敗，嘗試使用前置相機
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: 'user',
-            width: { ideal: 1920 },
-            height: { ideal: 1080 }
-          }
-        });
-        streamRef.current = stream;
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          await videoRef.current.play();
-        }
-      } catch (fallbackErr) {
-        console.error('Error accessing front camera:', fallbackErr);
-        setError('Failed to access both front and back cameras');
-      }
-    }
-  };
-
-  const stopCamera = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => {
-        track.stop();
-      });
-      streamRef.current = null;
-    }
-    if (videoRef.current) {
-      videoRef.current.srcObject = null;
-    }
-  };
-
-  const takePhoto = () => {
-    if (videoRef.current) {
-      const canvas = document.createElement('canvas');
-      canvas.width = videoRef.current.videoWidth;
-      canvas.height = videoRef.current.videoHeight;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(videoRef.current, 0, 0);
-      const imageUrl = canvas.toDataURL('image/jpeg');
-      setImage(imageUrl);
-    }
-  };
-
   return (
     <div className="camera-page">
-      <h2>Camera Page</h2>
       {error && <div className="error-message">{error}</div>}
       <div className="camera-container">
-        <video
-          ref={videoRef}
-          autoPlay
-          playsInline
-          muted // 添加 muted 屬性以避免某些瀏覽器的自動播放限制
-          style={{ width: '100%', maxWidth: '640px' }}
+        <video 
+          ref={videoRef} 
+          playsInline 
+          muted 
+          autoPlay 
         />
-        {image && (
-          <div className="captured-image">
-            <img src={image} alt="Captured" style={{ width: '100%', maxWidth: '640px' }} />
-          </div>
-        )}
       </div>
-      <div className="camera-controls">
-        <button onClick={startCamera}>Start Camera</button>
-        <button onClick={takePhoto}>Take Photo</button>
-        <button onClick={stopCamera}>Stop Camera</button>
-      </div>
+      {cameraInfo && (
+        <div className="camera-info">
+          {cameraInfo}
+        </div>
+      )}
     </div>
   );
-}
+};
 
-export default CameraPage; 
+export default CameraPage;
