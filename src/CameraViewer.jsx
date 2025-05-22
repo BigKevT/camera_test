@@ -24,7 +24,7 @@ const CameraViewer = () => {
     if (/iPad/i.test(ua)) return 'Apple iPad';
     if (/MI|Redmi|Xiaomi/i.test(ua)) return 'Xiaomi';
     if (/OnePlus/i.test(ua)) return 'OnePlus';
-    if (/OPPO/i.test(ua)) return 'OPPO';
+    if (/OPPO/i.test(ua)) return 'OPPOㄋ';
     if (/Vivo/i.test(ua)) return 'Vivo';
     if (/ASUS|Zenfone/i.test(ua)) return 'ASUS';
     if (/HUAWEI|HONOR/i.test(ua)) return 'Huawei/Honor';

@@ -1,16 +1,31 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
 import CameraViewer from './CameraViewer'
+import CameraPage from './CameraPage'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [currentPage, setCurrentPage] = useState('viewer'); // 'viewer' or 'camera'
 
   return (
-    <>
-      <CameraViewer />
-    </>
+    <div className="app-container">
+      <nav className="nav-bar">
+        <button 
+          className={currentPage === 'viewer' ? 'active' : ''} 
+          onClick={() => setCurrentPage('viewer')}
+        >
+          Viewer
+        </button>
+        <button 
+          className={currentPage === 'camera' ? 'active' : ''} 
+          onClick={() => setCurrentPage('camera')}
+        >
+          Camera
+        </button>
+      </nav>
+      <main className="main-content">
+        {currentPage === 'viewer' ? <CameraViewer /> : <CameraPage />}
+      </main>
+    </div>
   )
 }
 
