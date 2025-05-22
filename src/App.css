@@ -138,3 +138,15 @@ body {
   border-radius: 4px;
   overflow: hidden;
 }
+
+.error-message {
+  color: #dc3545;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  padding: 0.75rem;
+  margin: 1rem 0;
+  text-align: center;
+  width: 100%;
+  max-width: 640px;
+}
