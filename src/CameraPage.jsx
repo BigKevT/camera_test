@@ -36,9 +36,11 @@ function CameraPage() {
           height: { ideal: 1080 },
           advanced: [
             {
-              focusMode: 'continuous',
+              focusMode: 'manual',
+              focusDistance: 0.1,
               exposureMode: 'continuous',
-              whiteBalanceMode: 'continuous'
+              whiteBalanceMode: 'continuous',
+              zoom: 1.0
             }
           ]
         }
