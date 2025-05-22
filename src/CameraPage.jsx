@@ -65,7 +65,7 @@ function CameraPage() {
           ref={videoRef}
           autoPlay
           playsInline
-          style={{ width: '100%', maxWidth: '640px' }}
+          style={{ width: '320px', maxWidth: '640px', height: "200px", maxHeight: "400px" }}
         />
         {image && (
           <div className="captured-image">
