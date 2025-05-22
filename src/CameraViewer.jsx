@@ -74,7 +74,14 @@ const CameraViewer = () => {
           video: {
             facingMode: 'environment',
             width: { ideal: 1920 },
-            height: { ideal: 1080 }
+            height: { ideal: 1080 },
+            advanced: [
+              {
+                focusMode: 'continuous',
+                exposureMode: 'continuous',
+                whiteBalanceMode: 'continuous'
+              }
+            ]
           }
         });
         
