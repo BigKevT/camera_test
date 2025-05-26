@@ -6,19 +6,26 @@ const ReactCameraPage = () => {
   const [error, setError] = useState(null);
   const [capturedImage, setCapturedImage] = useState(null);
 
-
   // 拍照功能
   const capture = useCallback(() => {
     if (webcamRef.current) {
-      const imageSrc = webcamRef.current.getScreenshot({ width: 1920, height: 1440 });
+      // const imageSrc = webcamRef.current.getScreenshot({
+      //   width: 1080,
+      //   height: 1080,
+      //   type: 'image/jpeg',
+      //   quality: 1.0
+      // });
+      const imageSrc = webcamRef.current.getScreenshot({width: 1920, height: 1080})
       setCapturedImage(imageSrc);
     }
   }, [webcamRef]);
 
   // 相機配置
   const videoConstraints = {
-    width: { ideal: 1920 },
-    height: { ideal: 1440 },
+    // width: { ideal: 1920 },
+    // height: { ideal: 1080 },
+    width: 1920,
+    height: 1080,
     facingMode: 'environment',
     focusMode: 'continuous',
     exposureMode: 'continuous',
@@ -46,8 +53,8 @@ const ReactCameraPage = () => {
         <button onClick={capture}>拍照</button>
       </div>
       {capturedImage && (
-        <div className="captured-image">
-          <img src={capturedImage} alt="Captured" />
+        <div>
+          <img style={{width: "50%"}} src={capturedImage} alt="Captured" />
         </div>
       )}
     </div>

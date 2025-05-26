@@ -120,17 +120,19 @@ body {
 .camera-container {
   width: 100%;
   max-width: 1280px;
+  margin: 0 auto;
+  position: relative;
   background-color: #000;
   border-radius: 8px;
   overflow: hidden;
   aspect-ratio: 16/9;
-  margin-bottom: 1rem;
 }
 
-.webcam {
+.camera-container .webcam {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
 }
 
 .camera-info {
@@ -188,13 +190,13 @@ body {
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  background-color: #000;
 }
 
 .captured-image img {
   width: 100%;
   height: auto;
   display: block;
+  background-color: #000;
 }
 
 @media (max-width: 640px) {
