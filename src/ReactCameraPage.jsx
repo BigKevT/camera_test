@@ -10,8 +10,8 @@ const ReactCameraPage = () => {
   const capture = useCallback(() => {
     if (webcamRef.current) {
       const imageSrc = webcamRef.current.getScreenshot({
-        width: 1080,
-        height: 1080,
+        width: "1920",
+        height: "1080",
         type: 'image/jpeg',
         quality: 1.0
       });
@@ -50,7 +50,7 @@ const ReactCameraPage = () => {
         <button onClick={capture}>拍照</button>
       </div>
       {capturedImage && (
-        <div>
+        <div className="captured-image">
           <img src={capturedImage} alt="Captured" />
         </div>
       )}
