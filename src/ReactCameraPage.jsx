@@ -15,7 +15,7 @@ const ReactCameraPage = () => {
       //   type: 'image/jpeg',
       //   quality: 1.0
       // });
-      const imageSrc = webcamRef.current.getScreenshot({width: 1920, height: 1080})
+      const imageSrc = webcamRef.current.getScreenshot({width: 1920, height: 1440})
       setCapturedImage(imageSrc);
     }
   }, [webcamRef]);
@@ -25,7 +25,7 @@ const ReactCameraPage = () => {
     // width: { ideal: 1920 },
     // height: { ideal: 1080 },
     width: 1920,
-    height: 1080,
+    height: 1440,
     facingMode: 'environment',
     focusMode: 'continuous',
     exposureMode: 'continuous',
