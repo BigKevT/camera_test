@@ -45,7 +45,7 @@ const ReactCameraPage = () => {
         <button onClick={capture}>拍照</button>
       </div>
       {capturedImage && (
-        <div style={{width: "100%"}}>
+        <div>
           <img src={capturedImage} alt="Captured" />
         </div>
       )}
