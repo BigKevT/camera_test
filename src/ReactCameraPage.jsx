@@ -1,7 +1,7 @@
 import React, { useCallback, useRef, useState } from 'react';
 import Webcam from 'react-webcam';
 
-const CameraPage = () => {
+const ReactCameraPage = () => {
   const webcamRef = useRef(null);
   const [error, setError] = useState(null);
   const [capturedImage, setCapturedImage] = useState(null);
@@ -97,4 +97,4 @@ const CameraPage = () => {
   );
 };
 
-export default CameraPage;
+export default ReactCameraPage;
