@@ -46,7 +46,7 @@ const ReactCameraPage = () => {
       </div>
       {capturedImage && (
         <div>
-          <img src={capturedImage} alt="Captured" />
+          <img style={{width: "80%"}} src={capturedImage} alt="Captured" />
         </div>
       )}
     </div>
