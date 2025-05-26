@@ -9,15 +9,15 @@ const ReactCameraPage = () => {
   // 拍照功能
   const capture = useCallback(() => {
     if (webcamRef.current) {
-      const imageSrc = webcamRef.current.getScreenshot({width: 1080, height: 1920});
+      const imageSrc = webcamRef.current.getScreenshot({width: 1920, height: 1440});
       setCapturedImage(imageSrc);
     }
   }, [webcamRef]);
 
   // 相機配置
   const videoConstraints = {
-    width: { ideal: 1080 },
-    height: { ideal: 1920 },
+    width: { ideal: 1920 },
+    height: { ideal: 1440 },
     facingMode: 'environment',
     focusMode: 'continuous',
     exposureMode: 'continuous',
