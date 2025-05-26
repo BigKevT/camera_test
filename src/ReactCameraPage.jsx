@@ -6,14 +6,13 @@ const ReactCameraPage = () => {
   const [error, setError] = useState(null);
   const [capturedImage, setCapturedImage] = useState(null);
 
+
   // 拍照功能
   const capture = useCallback(() => {
     if (webcamRef.current) {
       const imageSrc = webcamRef.current.getScreenshot({
         width: "1920",
         height: "1080",
-        type: 'image/jpeg',
-        quality: 1.0
       });
       setCapturedImage(imageSrc);
     }
