@@ -54,7 +54,12 @@ const ReactCameraPage = () => {
   // 拍照功能
   const capture = useCallback(() => {
     if (webcamRef.current) {
-      const imageSrc = webcamRef.current.getScreenshot({width: 1080, height: 1080});
+      const imageSrc = webcamRef.current.getScreenshot({
+        width: 1080,
+        height: 1080,
+        type: 'image/jpeg',
+        quality: 1.0
+      });
       setCapturedImage(imageSrc);
     }
   }, [webcamRef]);
@@ -83,6 +88,8 @@ const ReactCameraPage = () => {
           onUserMediaError={(err) => setError("無法存取相機，請確認權限是否開啟")}
           mirrored={false}
           className="webcam"
+          imageSmoothing={true}
+          imageSmoothingQuality="high"
         />
       </div>
       <div className="camera-controls">
