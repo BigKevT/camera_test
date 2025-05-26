@@ -93,7 +93,7 @@ const ReactCameraPage = () => {
         />
       </div>
       <div className="camera-controls">
-        <button onClick={capture}>Take Photo</button>
+        <button onClick={capture}>拍照</button>
       </div>
       {capturedImage && (
         <div className="captured-image">
