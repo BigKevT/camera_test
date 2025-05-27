@@ -5,17 +5,32 @@ const ReactCameraPage = () => {
   const webcamRef = useRef(null);
   const [capturedImage, setCapturedImage] = useState(null);
 
+  // 拍照 function：從原始 video 擷取畫面，解析度不會變形
   const capture = useCallback(() => {
-    const imageSrc = webcamRef.current.getScreenshot({width: 1920, height: 1440});
-    if (imageSrc) {
-      setCapturedImage(imageSrc);
+    const video = webcamRef.current.video;
+
+    if (video) {
+      const videoWidth = video.videoWidth;
+      const videoHeight = video.videoHeight;
+
+      const canvas = document.createElement('canvas');
+      canvas.width = videoWidth;
+      canvas.height = videoHeight;
+
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, videoWidth, videoHeight);
+
+      const imageData = canvas.toDataURL('image/jpeg', 1.0);
+      setCapturedImage(imageData);
+    } else {
+      alert('無法讀取攝影機畫面');
     }
   }, []);
 
   const videoConstraints = {
     facingMode: 'environment',
-    width: 1920,
-    height: 1440,
+    width: { ideal: 1920 },
+    height: { ideal: 1440 },
   };
 
   return (
@@ -26,17 +41,18 @@ const ReactCameraPage = () => {
         alignItems: 'center',
         gap: '1rem',
         padding: '1rem',
+        fontFamily: 'Arial, sans-serif',
       }}
     >
-      {/* 取景框 */}
+      {/* 4:3 取景框 */}
       <div
         style={{
           width: '360px',
-          height: '270px', // 4:3 比例
+          height: '270px', // 4:3
           overflow: 'hidden',
           borderRadius: '0.5rem',
-          boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
           backgroundColor: 'black',
+          boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
@@ -45,26 +61,26 @@ const ReactCameraPage = () => {
         <Webcam
           audio={false}
           ref={webcamRef}
-          screenshotFormat="image/jpeg"
-          screenshotQuality={1}
           videoConstraints={videoConstraints}
           style={{
-            width: '100%',         // 滿版寬度
-            height: 'auto',        // 高度自動，維持比例
-            objectFit: 'cover',    // 補裁切，但不會拉伸
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
           }}
         />
       </div>
 
+      {/* 拍照按鈕 */}
       <button
         onClick={capture}
         style={{
           backgroundColor: '#3B82F6',
           color: 'white',
-          padding: '0.5rem 1rem',
+          padding: '0.5rem 1.25rem',
           borderRadius: '0.375rem',
           border: 'none',
           cursor: 'pointer',
+          fontSize: '16px',
         }}
         onMouseOver={(e) => (e.target.style.backgroundColor = '#2563EB')}
         onMouseOut={(e) => (e.target.style.backgroundColor = '#3B82F6')}
@@ -72,8 +88,9 @@ const ReactCameraPage = () => {
         拍照
       </button>
 
+      {/* 顯示拍攝照片 */}
       {capturedImage && (
-        <div style={{ width: '360px' }}>
+        <div style={{ width: '360px', textAlign: 'center' }}>
           <p style={{ marginBottom: '0.5rem' }}>拍攝的照片：</p>
           <img
             src={capturedImage}
