@@ -1,54 +1,89 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useRef, useState, useCallback } from 'react';
 import Webcam from 'react-webcam';
 
 const ReactCameraPage = () => {
   const webcamRef = useRef(null);
-  const [error, setError] = useState(null);
   const [capturedImage, setCapturedImage] = useState(null);
 
-  // 拍照功能
   const capture = useCallback(() => {
-    if (webcamRef.current) {
-      const imageSrc = webcamRef.current.getScreenshot({width: 1920, height: 1440});
+    const imageSrc = webcamRef.current.getScreenshot({width: 1920, height: 1440});
+    if (imageSrc) {
       setCapturedImage(imageSrc);
     }
-  }, [webcamRef]);
+  }, []);
 
-  // 相機配置
   const videoConstraints = {
-    width: { ideal: 1920 },
-    height: { ideal: 1440 },
     facingMode: 'environment',
-    focusMode: 'continuous',
-    exposureMode: 'continuous',
-    whiteBalanceMode: 'continuous'
+    width: 1920,
+    height: 1440,
   };
 
   return (
-    <div className="camera-page">
-      {error && <div className="error-message">{error}</div>}
-      <div className="camera-container">
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '1rem',
+        padding: '1rem',
+      }}
+    >
+      {/* 取景框 */}
+      <div
+        style={{
+          width: '360px',
+          height: '240px', // 6:4 比例
+          overflow: 'hidden',
+          borderRadius: '0.5rem',
+          boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+          backgroundColor: 'black',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
         <Webcam
-          ref={webcamRef}
           audio={false}
+          ref={webcamRef}
           screenshotFormat="image/jpeg"
+          screenshotQuality={1}
           videoConstraints={videoConstraints}
-          onUserMedia={() => setError(null)}
-          onUserMediaError={(err) => setError("無法存取相機，請確認權限是否開啟")}
-          mirrored={false}
-          className="webcam"
-          imageSmoothing={true}
-          imageSmoothingQuality="high"
+          style={{
+            width: '100%',         // 滿版寬度
+            height: 'auto',        // 高度自動，維持比例
+            objectFit: 'cover',    // 補裁切，但不會拉伸
+          }}
         />
       </div>
-      <div className="camera-controls">
-        <button onClick={capture}>拍照</button>
-      </div>
+
+      <button
+        onClick={capture}
+        style={{
+          backgroundColor: '#3B82F6',
+          color: 'white',
+          padding: '0.5rem 1rem',
+          borderRadius: '0.375rem',
+          border: 'none',
+          cursor: 'pointer',
+        }}
+        onMouseOver={(e) => (e.target.style.backgroundColor = '#2563EB')}
+        onMouseOut={(e) => (e.target.style.backgroundColor = '#3B82F6')}
+      >
+        拍照
+      </button>
+
       {capturedImage && (
-        <div>
-          <div style={{width: "80%"}}>
-            <img src={capturedImage} alt="Captured" />
-          </div>
+        <div style={{ width: '360px' }}>
+          <p style={{ marginBottom: '0.5rem' }}>拍攝的照片：</p>
+          <img
+            src={capturedImage}
+            alt="captured"
+            style={{
+              width: '100%',
+              borderRadius: '0.5rem',
+              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+            }}
+          />
         </div>
       )}
     </div>
