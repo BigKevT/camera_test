@@ -64,7 +64,7 @@ const ReactCameraPage = () => {
       <div
         style={{
           width: '360px',
-          height: '270px', // 4:3
+          height: '240px', // 3:2
           overflow: 'hidden',
           borderRadius: '0.5rem',
           backgroundColor: 'black',
