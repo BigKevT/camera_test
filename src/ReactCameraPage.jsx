@@ -6,7 +6,7 @@ const ReactCameraPage = () => {
   const [capturedImage, setCapturedImage] = useState(null);
 
   const capture = useCallback(() => {
-    const imageSrc = webcamRef.current.getScreenshot({width: 1920, height: 1280});
+    const imageSrc = webcamRef.current.getScreenshot({width: 1920, height: 1440});
     if (imageSrc) {
       setCapturedImage(imageSrc);
     }
@@ -15,7 +15,7 @@ const ReactCameraPage = () => {
   const videoConstraints = {
     facingMode: 'environment',
     width: 1920,
-    height: 1280,
+    height: 1440,
   };
 
   return (
@@ -32,7 +32,7 @@ const ReactCameraPage = () => {
       <div
         style={{
           width: '360px',
-          height: '240px', // 6:4 比例
+          height: '270px', // 4:3 比例
           overflow: 'hidden',
           borderRadius: '0.5rem',
           boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
