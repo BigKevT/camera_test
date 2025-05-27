@@ -8,24 +8,40 @@ const ReactCameraPage = () => {
   // 拍照 function：從原始 video 擷取畫面，解析度不會變形
   const capture = useCallback(() => {
     const video = webcamRef.current.video;
-
+  
     if (video) {
       const videoWidth = video.videoWidth;
       const videoHeight = video.videoHeight;
-
+  
+      // 取中間最小邊作為裁切邊長
+      const cropSize = Math.min(videoWidth, videoHeight);
+      const cropX = (videoWidth - cropSize) / 2;
+      const cropY = (videoHeight - cropSize) / 2;
+  
       const canvas = document.createElement('canvas');
-      canvas.width = videoWidth;
-      canvas.height = videoHeight;
-
+      canvas.width = cropSize;
+      canvas.height = cropSize;
+  
       const ctx = canvas.getContext('2d');
-      ctx.drawImage(video, 0, 0, videoWidth, videoHeight);
-
+      ctx.drawImage(
+        video,
+        cropX,
+        cropY,
+        cropSize,
+        cropSize,
+        0,
+        0,
+        cropSize,
+        cropSize
+      );
+  
       const imageData = canvas.toDataURL('image/jpeg', 1.0);
       setCapturedImage(imageData);
     } else {
-      alert('無法讀取攝影機畫面');
+      alert('無法取得攝影機畫面');
     }
   }, []);
+  
 
   const videoConstraints = {
     facingMode: 'environment',
