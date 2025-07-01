@@ -3,6 +3,7 @@ import './App.css'
 import CameraViewer from './CameraViewer'
 import CameraPage from './CameraPage'
 import ReactCameraPage from './ReactCameraPage'
+import AutoFocusCamera from './AutoFocusCamera'
 
 function App() {
   const [currentPage, setCurrentPage] = useState('viewer'); // 'viewer', 'camera', or 'react-camera'
@@ -28,11 +29,18 @@ function App() {
         >
           📱 React相機
         </button>
+        <button 
+          className={currentPage === 'auto-camera' ? 'active' : ''} 
+          onClick={() => setCurrentPage('auto-camera')}
+        >
+          Auto Camera
+        </button>
       </nav>
       <main className="main-content">
         {currentPage === 'viewer' && <CameraViewer />}
         {currentPage === 'camera' && <CameraPage />}
         {currentPage === 'react-camera' && <ReactCameraPage />}
+        {currentPage === 'auto-camera' && <AutoFocusCamera />}
       </main>
     </div>
   )
